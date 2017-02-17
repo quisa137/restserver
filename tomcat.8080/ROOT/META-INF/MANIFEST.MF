@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Package: RestServer
+Archiver-Version: Plexus Archiver
+Built-By: SGcom
+Created-By: Apache Maven 3.3.9
+Build-Jdk: 1.8.0_05
+Main-Class: com.jindata.restserver.EntryPoint
+

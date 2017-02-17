@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+  xmlns="http://www.springframework.org/schema/beans" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:security="http://www.springframework.org/schema/security" 
+  xsi:schemaLocation="http://www.springframework.org/schema/beans 
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/security 
+    http://www.springframework.org/schema/security/spring-security.xsd">
+    <!-- 
+    <security:global-method-security secured-annotations="enabled">
+        <security:protect-pointcut expression="execution(* demo.jaxrs.service.CustomerService.getCustomer(*))" access="ROLE_CUSTOMER,ROLE_ADMIN"/>
+        <security:protect-pointcut expression="execution(* demo.jaxrs.service.CustomerService.addCustomer(*))" access="ROLE_ADMIN"/>
+        <security:protect-pointcut expression="execution(* demo.jaxrs.service.CustomerService.updateCustomer(Long,demo.jaxrs.service.Customer))" access="ROLE_ADMIN"/>
+        <security:protect-pointcut expression="execution(* demo.jaxrs.service.CustomerService.deleteCustomer(*))" access="ROLE_ADMIN"/>
+        <security:protect-pointcut expression="execution(* demo.jaxrs.service.CustomerService.getOrder(*))" access="ROLE_CUSTOMER,ROLE_ADMIN"/>
+    </security:global-method-security>
+    <security:http auto-config="true">
+        <security:http-basic/>
+    </security:http>
+    <security:authentication-manager>
+        <security:authentication-provider>
+            <security:user-service>
+                <security:user name="bob" password="bobspassword" authorities="ROLE_CUSTOMER"/>
+                <security:user name="fred" password="fredspassword" authorities="ROLE_CUSTOMER,ROLE_ADMIN"/>
+            </security:user-service>
+        </security:authentication-provider>
+    </security:authentication-manager>
+    -->
+    <security:global-method-security secured-annotations="enabled" pre-post-annotations="enabled" />
+    <security:http auto-config="true" use-expressions="true" create-session="stateless" entry-point-ref="digestEntryPoint">
+      <!-- 로그아웃은 클라이언트에서 csrf 값과 함께 POST로 전송해야 동작한다 -->
+      <security:form-login
+        login-page="/login"
+        username-parameter="username"
+        password-parameter="password"
+        login-processing-url="/signin"
+        authentication-success-handler-ref="signinSuccessHandler"
+        authentication-failure-handler-ref="signinFailureHandler"
+        default-target-url="/"
+        always-use-default-target="false"
+      />
+      <security:csrf/>
+      <security:intercept-url pattern="/*" access="hasRole('ROLE_USER')"/>
+      <security:intercept-url pattern="/favicon.ico" access="hasRole('ROLE_ANONYMOUS')" />
+      <security:http-basic />
+      <security:custom-filter ref="digestFilter" after="BASIC_AUTH_FILTER" />
+      <security:logout invalidate-session="true" delete-cookies="JSESSIONID" logout-url="/logout" logout-success-url="/"/>
+    </security:http>
+    <security:authentication-manager>
+      <security:authentication-provider>
+        <security:jdbc-user-service data-source-ref="dataSource" id="userService"/>
+        <security:password-encoder ref="encoder">
+          <security:salt-source ref="saltSource"/>
+        </security:password-encoder>
+      </security:authentication-provider>
+    </security:authentication-manager>
+    <!-- Http Basic Authentication으로 로그인 시 Digest 인증 정보를 클라이언트에 남겨 놓는다. -->
+    <bean id="digestFilter" class="org.springframework.security.web.authentication.www.DigestAuthenticationFilter">
+     <property name="userDetailsService" ref="userService" />
+     <property name="authenticationEntryPoint" ref="digestEntryPoint" />
+    </bean>
+    <bean id="digestEntryPoint" class="org.springframework.security.web.authentication.www.DigestAuthenticationEntryPoint">
+     <property name="realmName" value="RestServer Login"/>
+     <property name="key" value="acegi" />
+    </bean>
+    <bean id="encoder" class="org.springframework.security.authentication.encoding.ShaPasswordEncoder" />
+    <bean id="saltSource" class="org.springframework.security.authentication.dao.ReflectionSaltSource"> 
+      <property name="userPropertyToUse" value="username" />
+    </bean>
+    <bean id="signinSuccessHandler" class="com.jindata.restserver.security.SigninSuccessHandler"/>
+    <bean id="signinFailureHandler" class="com.jindata.restserver.security.SigninFailureHandler"/>
+</beans>

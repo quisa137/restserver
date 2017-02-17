@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context docBase="" reloadable="true" fireRequestListenersOnForwards="true">
+  <WatchResource>WEB-INF/web.xml</WatchResource>
+  <WatchResource>WEB-INF/spring-security.xml/</WatchResource>
+  <!-- 
+  <Resource name="jdbc/apiserver"
+    auth="Container"
+    type="javax.sql.Datasource"
+    driverClassName="com.mysql.jdbc.Driver"
+    loginTimeout="10"
+    maxWait="5000"
+    username="api-server"
+    passwrod="api-server"
+    testOnBorrow="true"
+    url="jdbc:mysql://192.168.0.126:3306/api-server"
+  />
+  -->
+</Context>
